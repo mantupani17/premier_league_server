@@ -11,8 +11,7 @@ var http = require('http');
 /**
  * Get port from environment and store in Express.
  */
-
-var port = normalizePort(process.env.PORT || '3000');
+var port = normalizePort(process.env.PORT || '3333');
 app.set('port', port);
 
 // global use of mongoose
@@ -28,12 +27,13 @@ var server = http.createServer(app);
 /**
  * Database connection URI
  */
-mongoose.connect('mongodb://localhost/premier_league', { useNewUrlParser: true }, function (err) {
+mongoose.connect('mongodb://test_mantu:testmantu123@ds353457.mlab.com:53457/test_db', { useNewUrlParser: true, useUnifiedTopology: true }, function (err) {
     if (err) {
         console.error('Database connection error:', err.message);
         process.exit(1);
     } else {
         console.log("Database Connected...");
+        console.log(port)
         server.listen(port);
         server.on('error', onError);
         server.on('listening', onListening);
@@ -49,9 +49,8 @@ mongoose.set('useCreateIndex', true);
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+// server.on('error', onError);
+// server.on('listening', onListening);
 
 /**
  * Normalize a port into a number, string, or false.

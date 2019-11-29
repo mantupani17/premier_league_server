@@ -1,7 +1,7 @@
 const MatchModel = require('./../models/Match')
 
-const MatchHelpers = {
-    listAllMatches() {
-        MatchModel.find()
-    }
+const MatchHelpers = {}
+
+MatchHelpers.createAllMatches = function(matches){
+  
 }

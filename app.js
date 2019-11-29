@@ -11,6 +11,7 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var matchesRouter = require('./routes/match');
 
 var app = express();
 //For Security purpose
@@ -39,7 +40,7 @@ app.use(session({
       maxAge: null
   },
   store: new MongoStore({
-      url: 'mongodb://localhost/premier_league',
+      url: 'mongodb://test_mantu:testmantu123@ds353457.mlab.com:53457/test_db',
       ttl: 14 * 24 * 60 * 60 // = 14 days. Default 
   })
 }));
@@ -54,6 +55,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/api/match' ,matchesRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

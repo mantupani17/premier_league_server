@@ -24,3 +24,24 @@ var MatchSchema = new Schema({
 
 
 var Match = module.exports = mongoose.model('matches', MatchSchema);
+
+Match.createAllMatch = function(matches , callback){
+    return this.create(matches , callback)
+}
+
+Match.getMatch = function(where, select, skip, limit , callback){
+    where = where || {}
+    select = select || null
+    skip = skip || 0
+    limit = limit || 10000
+    return this.find( where , select, callback);
+}
+
+Match.getSeasons = function(where, callback){
+    return this.aggregate([
+        {$match:where},
+        {$group:{"_id":"$season" ,teams: {$addToSet: "$team1"}} },
+        {$project:{season:"$_id", noOfTeams:{$size:'$teams'}}}
+    ])
+    .exec(callback);
+}
