@@ -1,0 +1,36 @@
+{
+    "data": [
+        [
+            {
+                "_id": "Royal Challengers Bangalore",
+                "firstTeamWon": 0,
+                "secondTeamWon": 9
+            },
+            {
+                "_id": "Mumbai Indians",
+                "firstTeamWon": 16,
+                "secondTeamWon": 0
+            }
+        ],
+        [
+            {
+                "_id": "Mumbai Indians",
+                "firstTeamTotMatch": 5,
+                "secondTeamTotMatch": 0,
+                "firstTeamWon": 5,
+                "secondTeamWon": 0
+            },
+            {
+                "_id": "Royal Challengers Bangalore",
+                "firstTeamTotMatch": 0,
+                "secondTeamTotMatch": 2,
+                "firstTeamWon": 0,
+                "secondTeamWon": 2
+            }
+        ],
+        {
+            "teamOneWinPer": 89.28571428571429,
+            "teamTwoWinPer": 3.571428571428571
+        }
+    ]
+}

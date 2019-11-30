@@ -1,9 +1,11 @@
 var express = require('express');
 var router = express.Router();
 const MatchModel = require('./../models/Match')
+var async = require("async");
 
 const API = {}
 
+// this is for creating all matches collection in live m-lab DB 
 API.createAllMatches = function (req, res, next) {
     const matches = [
         {
@@ -15139,6 +15141,7 @@ API.createAllMatches = function (req, res, next) {
     
 }
 
+// Get All Matches
 API.getAllMatches = function(req, res, next){
     try {
         const where = {$or:[{team1:"Chennai Super Kings"},{team2:"Chennai Super Kings"}]}
@@ -15155,7 +15158,8 @@ API.getAllMatches = function(req, res, next){
     }
 }
 
-API.futureMatchPrediction = function(req, res, next){
+// Head to Head matches
+API.headToHead = function(req, res, next){
     try {
         const where = { $or: [
             {
@@ -15182,20 +15186,9 @@ API.futureMatchPrediction = function(req, res, next){
     }
 }
 
+// get All seasons
 API.getAllSeasons = function(req, res, next){
     try {
-        const where = { $or: [
-            {
-                $and:[
-                    { team1:"Chennai Super Kings" },
-                    { team2: "Sunrisers Hyderabad" } 
-                ]  ,
-                $and:[
-                    { team1:"Sunrisers Hyderabad" },
-                    { team2: "Chennai Super Kings" } 
-                ]                   
-            }
-        ]}
         MatchModel.getSeasons({}, (err, seasons)=>{
             if(err){
                 console.log(err)
@@ -15209,9 +15202,117 @@ API.getAllSeasons = function(req, res, next){
     }
 }
 
+// Basic Enhancements ( level -1 )
+API.futurePredection =  function(req, res, next){
+  try {
+    const getData = req.body
+    const team1 = getData.team1 || 'Mumbai Indians'
+    const team2 = getData.team2 || 'Royal Challengers Bangalore'
+    const venue = getData.venue || 'Rajiv Gandhi International Stadium, Uppal'
+    const choose = getData.choose || 'bat'
+    async.series([
+      // prediction by head to head
+      function(callback) {
+        MatchModel.getFuturePredictionByTeamWon(team1 , team2 , (err, data)=>{
+            if(err){
+              console.log(err)
+              return callback(null, []);
+            }
+            if(data.length > 0){
+                let totalMatches = 0
+                let teamOneWins = 0
+                let teamTwoWins = 0
+                for (const key in data) {
+                  if (data.hasOwnProperty(key)) {
+                    const team = data[key];
+                    if(team._id == team1){
+                      totalMatches += team.firstTeamWon
+                      teamOneWins += team.firstTeamWon
+                    }else{
+                      totalMatches += team.secondTeamWon
+                      teamTwoWins += team.secondTeamWon
+                    }
+                  }
+                }
+                const teamOneWinPer = ( teamOneWins / totalMatches ) * 100 
+                const teamTwoWinPer = ( teamTwoWins / totalMatches ) * 100
+                callback(null, {heatToHead:{teamOneWinPer,teamTwoWinPer}});
+            }
+        })
+      },
+
+      // prediction by venue
+      function(callback) {
+          MatchModel.getFuturePredectionByVenue(venue , team1 , team2 , (err, data)=>{
+              if(err){
+                console.log(err)
+                return callback(null, []);
+              }
+              // getting team 1 wins and total matches
+              const totalTeam1Playes = data.filter((match)=>{
+                  return match._id == team1
+              }).map((m)=>{
+                  return {totalMatches: m.firstTeamTotMatch , win:m.firstTeamWon}
+              })
+
+              // getting team 2 wins and total matches
+              const totalTeam2Playes = data.filter((match)=>{
+                  return match._id == team2
+              }).map((m)=>{
+                  return {totalMatches: m.secondTeamTotMatch  , win:m.secondTeamWon}
+              })
+
+              const teamOneWinPer = ( totalTeam1Playes[0].win / totalTeam1Playes[0].totalMatches ) * 100 
+              const teamTwoWinPer = ( totalTeam2Playes[0].win / totalTeam2Playes[0].totalMatches ) * 100
+              callback(null, {venueWon:{teamOneWinPer , teamTwoWinPer}});
+          })          
+      },
+
+      // prediction by choosing batting
+      function(callback) {
+        MatchModel.getFuturePredectionByChosingBat(team1 , team2 , choose,  (err, data)=>{
+            if(err){
+              console.log(err)
+              return callback(null, []);
+            }
+            // getting team 1 wins and total matches
+            const totalTeam1Playes = data.filter((match)=>{
+                return match._id.toss_winner == team1
+            }).map((m)=>{
+                return {totalMatches: m.winCount + m.lossCount , win:m.winCount}
+            })
+
+            // getting team 2 wins and total matches
+            const totalTeam2Playes = data.filter((match)=>{
+                return match._id.toss_winner == team2
+            }).map((m)=>{
+                return {totalMatches: m.winCount + m.lossCount , win:m.winCount}
+            })
+
+            const teamOneWinPer = ( totalTeam1Playes[0].win / totalTeam1Playes[0].totalMatches ) * 100 
+            const teamTwoWinPer = ( totalTeam2Playes[0].win / totalTeam1Playes[0].totalMatches ) * 100
+
+            callback(null, {batFirst:{teamOneWinPer , teamTwoWinPer}});
+        })
+        
+        
+      }
+  ],
+  // optional callback
+  function(err, results) {
+    res.send({data:results})
+  });
+    
+  } catch (error) {
+      console.log(error)
+      res.send({})
+  }
+}
+
 
 router.get('/create-maches' , API.createAllMatches)
 router.get('/get-myteam-maches' , API.getAllMatches)
-router.get('/future-win-prediction' , API.futureMatchPrediction)
+router.get('/head-to-head' , API.headToHead)
+router.get('/future-predection' , API.futurePredection)
 router.get('/seasons' , API.getAllSeasons)
 module.exports = router;
