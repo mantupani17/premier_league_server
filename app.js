@@ -7,18 +7,21 @@ var MongoStore = require('connect-mongo')(session);
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var passport = require('passport');
+
+
 var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var matchesRouter = require('./routes/match');
+var frontRouter = require('./routes/frontend');
 
 var app = express();
 //For Security purpose
 app.use(helmet());
 app.use(compression())
 
-require('./config/passport'); // pass passport for configuration
+require('./config/passport')(passport); // pass passport for configuration
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -31,7 +34,7 @@ app.use(cookieParser());
 
 app.use(session({
   secret: 'PREMIER_LEAGUE_APP',
-  resave: false,
+  resave: true,
   saveUninitialized: true,
   cookie: {
       path: '/',
@@ -45,7 +48,7 @@ app.use(session({
   })
 }));
 
-
+// passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -53,9 +56,11 @@ app.use(passport.session());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/', frontRouter);
+// var routes = require('./routes/index')(passport);
+app.use('/api/users', usersRouter);
 app.use('/api/match' ,matchesRouter);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

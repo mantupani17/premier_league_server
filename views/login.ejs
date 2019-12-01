@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <p>Welcome to <%= title %></p>
+    <form action="/api/users/login" method="POST">
+        <div>
+            <label for="email">Email</label>
+            <input name="email" id="email" type="email" required>
+        </div>
+        <div>
+            <label for="name">Password</label>
+            <input name="password" id="password" type="password" required>
+        </div>
+        <div>
+            <button type="submit">Login</button>
+        </div>
+    </form>
+    <a href="/register">Register</a>
+  </body>
+</html>
